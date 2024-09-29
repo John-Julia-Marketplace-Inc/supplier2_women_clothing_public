@@ -169,7 +169,8 @@ const updateInventoryAndCost = async (sku, newQuantity, size, newCost, updateUni
                     const inventoryItemId = variantEdge.node.inventoryItem.id;
                     const existingCost = parseFloat(variantEdge.node.inventoryItem.unitCost.amount);
 
-                    if (newCost !== existingCost) {
+                    // Using tolerance to compare floating-point numbers
+                    if (Math.abs(existingCost - newCost) > 0.01) {
                         console.log(`Existing cost (${existingCost}) is different from new cost (${newCost}). Updating...`);
 
                         const costVariables = {
@@ -204,6 +205,7 @@ const updateInventoryAndCost = async (sku, newQuantity, size, newCost, updateUni
     }
     console.log('\n=========\n');
 };
+
 
 // Function to update inventory from fetched CSV products
 async function updateInventoryFromFetchedCSV() {

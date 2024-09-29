@@ -3,6 +3,8 @@ name: Process Data from Private Repo
 # Trigger this workflow manually or through a dispatch event
 on:
   workflow_dispatch:
+  repository_dispatch:
+    types: [process_data]
 
 jobs:
   process-and-sync:
