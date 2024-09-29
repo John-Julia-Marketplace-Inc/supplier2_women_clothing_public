@@ -41,6 +41,24 @@ jobs:
         env:
           SHOP: ${{ secrets.SHOP }}
           SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+      
+      - name: Add new products
+        run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/add_products.js
+        env:
+          SHOP: ${{ secrets.SHOP }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+
+      - name: Update 0 inventory
+        run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/set_zero_inventory.js
+        env:
+          SHOP: ${{ secrets.SHOP }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+      
+      - name: Update all products
+        run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/update_products.js
+        env:
+          SHOP: ${{ secrets.SHOP }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
 
       - name: List Files for Debugging
         run: |
