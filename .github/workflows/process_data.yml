@@ -18,7 +18,7 @@ jobs:
         run: |
           git clone https://${{ secrets.PROFILE_URL }}:${{secrets.PUBLIC_PAT}}@github.com/${{ secrets.PROFILE_URL }}/supplier2_women_clothing_private.git private_repo
         env:
-          PRIVATE_REPO_URL: https://${{ secrets.PROFILE_URL }}:${{secrets.PUBLIC_PAT}}@github.com/${{ secrets.PROFILE_URL }}/supplier2_women_clothing_private.git
+          PUBLIC_PAT: https://${{ secrets.PROFILE_URL }}:${{secrets.PUBLIC_PAT}}@github.com/${{ secrets.PROFILE_URL }}/supplier2_women_clothing_private.git
 
       # Step 3: Run the data preprocessing script in the cloned private repo
       - name: Install Dependencies
