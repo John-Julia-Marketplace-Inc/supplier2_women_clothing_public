@@ -1,0 +1,47 @@
+name: Process Data from Private Repo
+
+# Trigger this workflow manually or through a dispatch event
+on:
+  workflow_dispatch:
+
+jobs:
+  process-and-sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the public repository (it will serve as the execution context)
+      - name: Checkout Public Repo
+        uses: actions/checkout@v3
+
+      # Step 2: Clone the private repository into a separate folder
+      - name: Clone Private Repository
+        run: |
+          git clone https://${{ secrets.PROFILE_URL }}:${{secrets.PUBLIC_PAT}}@github.com/${{ secrets.PROFILE_URL }}/supplier2_women_clothing_private.git private_repo
+        env:
+          PRIVATE_REPO_URL: https://${{ secrets.PROFILE_URL }}:${{secrets.PUBLIC_PAT}}@github.com/${{ secrets.PROFILE_URL }}/supplier2_women_clothing_private.git
+
+      # Step 3: Run the data preprocessing script in the cloned private repo
+      - name: Install Dependencies
+        run: |
+          pip install pandas requests lxml selenium 
+
+      - name: Run Data Processing Script
+        run: |
+          python /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/clean_data.py
+
+      - name: List Files for Debugging
+        run: |
+            cd private_repo
+            ls -R
+
+      # Step 4: Push the cleaned data back to the private repo
+      - name: Push Cleaned Data Back to Private Repository
+        run: |
+          cd private_repo
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git add .
+          git commit -m "Processed data from public repo" || echo "No changes to commit"
+          git push
+        env:
+          PRIVATE_REPO_PAT: ${{ secrets.PUBLIC_PAT }}https://${{ secrets.PROFILE_URL }}:${{secrets.PUBLIC_PAT}}@github.com/${{ secrets.PROFILE_URL }}/supplier2_women_clothing_private.git
