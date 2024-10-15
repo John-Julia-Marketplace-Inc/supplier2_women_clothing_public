@@ -1,7 +1,7 @@
 const axios = require('axios');
 const csv = require('csv-parser');
 const Shopify = require('shopify-api-node');
-require('dotenv').config();
+// require('dotenv').config();
 const stream = require('stream');
 const { promisify } = require('util');
 const fs = require('fs');
@@ -29,7 +29,7 @@ async function fetch_csv_products() {
     const products = [];
     try {
         await pipeline(
-            fs.createReadStream('private_repo/clean_data/new_clothes_cleaned.csv'),
+            fs.createReadStream('private_repo/clean_data/to_update.csv'),
             csv(),
             new stream.Writable({
                 objectMode: true,
@@ -169,7 +169,8 @@ const updateInventoryAndCost = async (sku, newQuantity, size, newCost, updateUni
                     const inventoryItemId = variantEdge.node.inventoryItem.id;
                     const existingCost = parseFloat(variantEdge.node.inventoryItem.unitCost.amount);
 
-                    if (newCost !== existingCost) {
+                    // Using tolerance to compare floating-point numbers
+                    if (Math.abs(existingCost - newCost) > 0.01) {
                         console.log(`Existing cost (${existingCost}) is different from new cost (${newCost}). Updating...`);
 
                         const costVariables = {
@@ -204,6 +205,7 @@ const updateInventoryAndCost = async (sku, newQuantity, size, newCost, updateUni
     }
     console.log('\n=========\n');
 };
+
 
 // Function to update inventory from fetched CSV products
 async function updateInventoryFromFetchedCSV() {

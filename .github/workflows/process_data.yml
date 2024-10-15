@@ -3,6 +3,8 @@ name: Process Data from Private Repo
 # Trigger this workflow manually or through a dispatch event
 on:
   workflow_dispatch:
+  repository_dispatch:
+    types: [process_data]
 
 jobs:
   process-and-sync:
@@ -16,9 +18,9 @@ jobs:
       # Step 2: Clone the private repository into a separate folder
       - name: Clone Private Repository
         run: |
-          git clone https://${{ secrets.PROFILE_URL }}:${{secrets.PUBLIC_PAT}}@github.com/${{ secrets.PROFILE_URL }}/supplier2_women_clothing_private.git private_repo
+          git clone https://${{ secrets.PROFILE_URL }}:${{secrets.PUBLIC_PAT}}@github.com/${{ secrets.PRIVATE_REPO_URL}}.git private_repo
         env:
-          PUBLIC_PAT: https://${{ secrets.PROFILE_URL }}:${{secrets.PUBLIC_PAT}}@github.com/${{ secrets.PROFILE_URL }}/supplier2_women_clothing_private.git
+          PUBLIC_PAT: https://${{ secrets.PROFILE_URL }}:${{secrets.PUBLIC_PAT}}@github.com/${{ secrets.PRIVATE_REPO_URL}}.git
 
       - name: Set up environment and run script with secrets
         run: |
@@ -37,25 +39,25 @@ jobs:
         run: npm install axios csv-parser dotenv shopify-api-node fs
         
       - name: Check existing SKUs
-        run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/check_existing_skus.js
+        run: node /home/runner/work/supplier2-women-clothing-public/supplier2-women-clothing-public/check_existing_skus.js
         env:
           SHOP: ${{ secrets.SHOP }}
           SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
       
       - name: Add new products
-        run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/add_products.js
+        run: node /home/runner/work/supplier2-women-clothing-public/supplier2-women-clothing-public/add_products.js
         env:
           SHOP: ${{ secrets.SHOP }}
           SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
 
       - name: Update 0 inventory
-        run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/set_zero_inventory.js
+        run: node /home/runner/work/supplier2-women-clothing-public/supplier2-women-clothing-public/set_zero_inventory.js
         env:
           SHOP: ${{ secrets.SHOP }}
           SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
       
       - name: Update all products
-        run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/update_products.js
+        run: node /home/runner/work/supplier2-women-clothing-public/supplier2-women-clothing-public/update_products.js
         env:
           SHOP: ${{ secrets.SHOP }}
           SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}

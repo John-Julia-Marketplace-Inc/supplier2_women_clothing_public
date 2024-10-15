@@ -1,7 +1,7 @@
 const axios = require('axios');
 const csv = require('csv-parser');
 const Shopify = require('shopify-api-node');
-require('dotenv').config();
+// require('dotenv').config();
 const stream = require('stream');
 const { promisify } = require('util');
 const fs = require('fs');
@@ -113,7 +113,7 @@ const updateInventoryToZero = async (sku) => {
 };
 
 
-async function main(products) {
+async function main(products, field) {
     const setToZero = await fetch_csv_products(products);
     
     console.log('Number of products to update to 0:', setToZero.length);
@@ -123,7 +123,7 @@ async function main(products) {
 
         for (let i = 0; i < setToZero.length; i++) {
             const product = setToZero[i];
-            const sku = product["SKU"];
+            const sku = product[field];
     
             if (!sku) {
                 console.log('Missing SKU in product:', product);
@@ -138,4 +138,5 @@ async function main(products) {
 }
 
 // Run the script
-main('private_repo/clean_data/zero_inventory.csv');
+main('../private_repo/clean_data/zero_inventory.csv', 'SKU');
+main('../private_repo/clean_data/zero_inventory2.csv', 'SKU')
