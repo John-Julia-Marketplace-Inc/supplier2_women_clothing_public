@@ -76,7 +76,6 @@ const updateInventoryToZero = async (sku) => {
                 const inventoryLevelId = variant.inventoryItem.inventoryLevels.edges[0].node.id;
                 const current_qty = variant.inventoryItem.inventoryLevels.edges[0].node.available;
 
-                console.log(`Updating SKU: ${variant.sku}, Current Qty: ${current_qty}, New Qty: 0`);
 
                 if (inventoryLevelId) {
                     const mutation = `
@@ -90,13 +89,9 @@ const updateInventoryToZero = async (sku) => {
                     }
                     `;
                     await shopify.graphql(mutation);
-                    console.log(`Updated inventory for SKU ${variant.sku} to 0.`);
-                } else {
-                    console.log(`No inventory level found for SKU ${variant.sku}.`);
-                }
+                    console.log(`Updated inventory for SKU to 0.`);
+                } 
             }
-        } else {
-            console.log(`SKU ${sku} not found.`);
         }
 
     } catch (error) {
@@ -126,7 +121,6 @@ async function main(products, field) {
             const sku = product[field];
     
             if (!sku) {
-                console.log('Missing SKU in product:', product);
                 continue;
             }
     
@@ -138,5 +132,5 @@ async function main(products, field) {
 }
 
 // Run the script
-main('../private_repo/clean_data/zero_inventory.csv', 'SKU');
-main('../private_repo/clean_data/zero_inventory2.csv', 'SKU')
+main('private_repo/clean_data/zero_inventory.csv', 'SKU');
+main('private_repo/clean_data/zero_inventory2.csv', 'SKU')
