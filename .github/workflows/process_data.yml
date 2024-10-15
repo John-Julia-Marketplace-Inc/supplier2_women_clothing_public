@@ -39,25 +39,25 @@ jobs:
         run: npm install axios csv-parser dotenv shopify-api-node fs
         
       - name: Check existing SKUs
-        run: node /home/runner/work/supplier2-women-clothing-public/supplier2-women-clothing-public/check_existing_skus.js
+        run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/check_existing_skus.js
         env:
           SHOP: ${{ secrets.SHOP }}
           SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
       
       - name: Add new products
-        run: node /home/runner/work/supplier2-women-clothing-public/supplier2-women-clothing-public/add_products.js
+        run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/add_products.js
         env:
           SHOP: ${{ secrets.SHOP }}
           SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
 
       - name: Update 0 inventory
-        run: node /home/runner/work/supplier2-women-clothing-public/supplier2-women-clothing-public/set_zero_inventory.js
+        run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/set_zero_inventory.js
         env:
           SHOP: ${{ secrets.SHOP }}
           SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
       
       - name: Update all products
-        run: node /home/runner/work/supplier2-women-clothing-public/supplier2-women-clothing-public/update_products.js
+        run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/update_products.js
         env:
           SHOP: ${{ secrets.SHOP }}
           SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
