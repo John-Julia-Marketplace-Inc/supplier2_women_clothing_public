@@ -78,3 +78,12 @@ jobs:
           git push
         env:
           PRIVATE_REPO_PAT: ${{ secrets.PUBLIC_PAT }}https://${{ secrets.PROFILE_URL }}:${{secrets.PUBLIC_PAT}}@github.com/${{ secrets.PROFILE_URL }}/supplier2_women_clothing_private.git
+
+  keepalive-job:
+        name: Keepalive Workflow
+        runs-on: ubuntu-latest
+        permissions:
+            actions: write
+        steps:
+        - uses: actions/checkout@v4
+        - uses: gautamkrishnar/keepalive-workflow@v2
