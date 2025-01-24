@@ -42,7 +42,7 @@ jobs:
         run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/iterate_and_find.js
         env:
             SHOP: ${{ secrets.SHOP }}
-            SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN_MEN_CLOTHING }}
+            SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
             ITERATE_AND_FIND: 'private_repo/clean_data/new_clothes_cleaned.csv'
             FOLDER: 'private_repo/clean_data/'
       
