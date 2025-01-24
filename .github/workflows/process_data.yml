@@ -46,6 +46,9 @@ jobs:
             ITERATE_AND_FIND: 'private_repo/clean_data/new_clothes_cleaned.csv'
             FOLDER: 'private_repo/clean_data/'
       
+      - name: Install Python dependencies
+        run: pip install pandas requests lxml
+      
       - name: Preprocess data
         run: python /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/preprocess.py --input_folder "private_repo/clean_data/" --clean_file "new_clothes_cleaned.csv"
           
