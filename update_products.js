@@ -14,22 +14,22 @@ const shopify = new Shopify({
 });
 
 const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 const handleRateLimit = async (error) => {
     if (error.extensions && error.extensions.code === 'THROTTLED') {
-        const retryAfter = parseInt(error.extensions.retryAfter) || 2000; // Default wait time of 2 seconds if no retryAfter is provided
+        const retryAfter = parseInt(error.extensions.retryAfter) || 4000; // Default wait time of 2 seconds if no retryAfter is provided
         console.log(`Rate limited! Waiting for ${retryAfter} ms before retrying...`);
         await wait(retryAfter); // Wait for the time suggested by Shopify (or 2 seconds)
     } else {
-        throw error; // If it's not a rate-limiting error, rethrow it
+        throw error; 
     }
 };
 
-// Fetch CSV products from file
 async function fetch_csv_products() {
     const products = [];
     try {
         await pipeline(
-            fs.createReadStream('private_repo/clean_data/to_update.csv'),
+            fs.createReadStream('private_repo/clean_data/os_update_products.csv'),
             csv(),
             new stream.Writable({
                 objectMode: true,
@@ -45,7 +45,6 @@ async function fetch_csv_products() {
     return products;
 }
 
-// GraphQL mutation for updating inventory item unit cost
 const updateInventoryMutation = `
     mutation inventoryItemUpdate($id: ID!, $input: InventoryItemUpdateInput!) {
         inventoryItemUpdate(id: $id, input: $input) {
@@ -63,8 +62,7 @@ const updateInventoryMutation = `
     }
 `;
 
-// Function to update inventory quantity and cost for a given SKU and update unit cost for all variants
-const updateInventoryAndCost = async (sku, newQuantity, size, newCost, updateUnitCost) => {
+const updateUnitCost = async(sku, newCost) => {
     try {
         const query = `
         {
@@ -75,32 +73,93 @@ const updateInventoryAndCost = async (sku, newQuantity, size, newCost, updateUni
                         title
                         sku
                         product {
-                            id
                             title
+                            id
                             handle
-                            variants(first: 100) {
-                                edges {
-                                    node {
-                                        id
-                                        inventoryItem {
-                                            id
-                                            unitCost {
-                                                amount
-                                            }
-                                        }
-                                    }
-                                }
-                            }
                         }
+                        price
+                        barcode
                         inventoryItem {
                             id
-                            inventoryLevels(first: 100) {
+                            unitCost {
+                                amount
+                                currencyCode
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        `;
+
+        const response = await shopify.graphql(query);
+        
+        if (response) {
+            let currCost = parseFloat(response.productVariants.edges[0].node.inventoryItem.unitCost.amount)
+            newCost = parseFloat(newCost)
+
+            if (currCost != newCost) {
+
+                const inventoryItemId = response.productVariants.edges[0].node.inventoryItem.id;
+
+                const costVariables = {
+                    id: inventoryItemId,
+                    input: {
+                        cost: newCost
+                    }
+                };
+
+                const costUpdateResponse = await shopify.graphql(updateInventoryMutation, costVariables);
+                if (costUpdateResponse.inventoryItemUpdate.userErrors.length > 0) {
+                    console.log(`User Errors:`, costUpdateResponse.inventoryItemUpdate.userErrors);
+                } else {
+                    console.log(`Updated Inventory Item for SKU ${sku} with new cost:`, costUpdateResponse.inventoryItemUpdate.inventoryItem);
+                }
+            }
+        } else {
+            console.log(`No product found for SKU ${sku}`);
+        }
+
+    } catch (error) {
+        if (error.extensions && error.extensions.code === 'THROTTLED') {
+            await handleRateLimit(error);
+            return updateUnitCost(sku, newCost); // Retry after waiting
+        } else {
+            console.error(`Error updating SKU ${sku}:`, error);
+        }
+    }
+};
+
+// Function to update inventory quantity and cost for a given SKU
+const updateInventoryQuantity = async (sku, size, newQuantity) => {
+    try {
+        const query = `
+        {
+            productVariants(first: 100, query: "sku:${sku}") {
+                edges {
+                    node {
+                        id
+                        title
+                        sku
+                        product {
+                            title
+                            id
+                            handle
+                        }
+                        price
+                        barcode
+                        inventoryItem {
+                            id
+                            inventoryLevels(first: 10) {
                                 edges {
                                     node {
                                         id
-                                        available
-                                        location {
+                                        quantities(names: "available") {
+                                            quantity
                                             name
+                                        }
+                                        location {
+                                            id
                                         }
                                     }
                                 }
@@ -116,126 +175,88 @@ const updateInventoryAndCost = async (sku, newQuantity, size, newCost, updateUni
 
         if (response && response.productVariants && response.productVariants.edges.length > 0) {
             const variants = response.productVariants.edges;
-            const product = variants[0].node.product;
 
-            // Update quantity for the specific size
-            for (const variantEdge of variants) {
-                const variant = variantEdge.node;
-                const sizeOption = variant.title;
+            for (const edge of variants) {
+                let variant = edge.node;
+                let inventoryItemId = variant.inventoryItem.id;
+                let inventoryLevels = variant.inventoryItem.inventoryLevels.edges;
+                let locationId = inventoryLevels[0].node.location.id;
 
-                if (sizeOption == size) {
-                    const inventoryItemId = variant.inventoryItem.id;
+                let currSize = variant.title
+                
+                if (currSize === size) {
+                    const availableDelta = newQuantity - inventoryLevels[0].node.quantities[0].quantity
 
-                    const current_qty = variant.inventoryItem.inventoryLevels.edges[0].node.available;
-                    const availableDelta = parseInt(newQuantity) - parseInt(current_qty);
-                    
                     if (availableDelta == 0 || availableDelta == '0') { 
-                        console.log(`No update needed`)
-                        break;
+                            console.log(`No update needed for ${sku}`)
+                            return
                     }
 
-                    const inventoryLevelId = variant.inventoryItem.inventoryLevels.edges[0].node.id;
-                    console.log('inventoryLevelId:', inventoryLevelId);
-
-                    if (inventoryLevelId) {
-                        const mutation = `
-                        mutation {
-                            inventoryAdjustQuantity(input: {inventoryLevelId: "${inventoryLevelId}", availableDelta: ${availableDelta}}) {
-                                inventoryLevel {
-                                    id
-                                    available
+                    const mutation = `
+                        mutation inventoryAdjustQuantities($input: InventoryAdjustQuantitiesInput!) {
+                            inventoryAdjustQuantities(input: $input) {
+                                userErrors {
+                                    field
+                                    message
+                                }
+                                inventoryAdjustmentGroup {
+                                    createdAt
+                                    reason
+                                    changes {
+                                        name
+                                        delta
+                                    }
                                 }
                             }
                         }
                         `;
-                        await shopify.graphql(mutation);
-                    }
-                    break;
-                }
-            }
 
-            if (updateUnitCost) {
-                // Update unit cost for all variants of the product
-                for (const variantEdge of product.variants.edges) {
-                    const inventoryItemId = variantEdge.node.inventoryItem.id;
-                    const existingCost = parseFloat(variantEdge.node.inventoryItem.unitCost.amount);
-
-                    // Using tolerance to compare floating-point numbers
-                    if (Math.abs(existingCost - newCost) > 0.01) {
-                        console.log(`Existing cost (${existingCost}) is different from new cost (${newCost}). Updating...`);
-
-                        const costVariables = {
-                            id: inventoryItemId,
-                            input: {
-                                cost: parseFloat(newCost)
+                    const variables = {
+                        "input": {
+                        "reason": "correction",
+                        "name": "available",
+                        "changes": [
+                            {
+                            "delta": availableDelta,
+                            "inventoryItemId": inventoryItemId,
+                            "locationId": locationId
                             }
-                        };
-
-                        const costUpdateResponse = await shopify.graphql(updateInventoryMutation, costVariables);
-                        if (costUpdateResponse.inventoryItemUpdate.userErrors.length > 0) {
-                            console.log(`User Errors:`, costUpdateResponse.inventoryItemUpdate.userErrors);
+                        ]
                         }
-                    } else {
-                        console.log(`Existing cost (${existingCost}) is the same as new cost (${newCost}). No update required.`);
                     }
+                    
+
+                    await shopify.graphql(mutation, variables);
                 }
             }
-        } 
+        } else {
+            console.log(`No product found for SKU ${sku}`);
+        }
+
     } catch (error) {
         if (error.extensions && error.extensions.code === 'THROTTLED') {
             await handleRateLimit(error);
-            return updateInventoryAndCost(sku, newQuantity, size, newCost, updateUnitCost)
+            return updateInventoryQuantity(sku, size, newQuantity); // Retry after waiting
         } else {
             console.error(`Error updating SKU ${sku}:`, error);
         }
     }
-    console.log('\n=========\n');
 };
 
 
-// Function to update inventory from fetched CSV products
 async function updateInventoryFromFetchedCSV() {
     const products = await fetch_csv_products();
 
-    for (let i = 0; i < products.length; i++) {
-        const product = products[i];
-        const skuFull = product["SKU"];
-        const sizeField = product['Size'];  // "S,M"
-        const quantityField = product["Qty"];  // "1,1"
-        const unitCost = parseFloat(product['Unit Cost']).toFixed(2);  // "1663.2"
+    for (const product of products) {
+        const sku = product["SKU"];
+        const sizes = product["Size"];
+        const quantities = product["Qty_supplier"];
 
-        if (!skuFull) {
-            continue;
-        }
-
-        if (!sizeField || !quantityField) {
-            continue;
-        }
-
-        const sizes = sizeField.split(',');  // Split sizes into array ["S", "M"]
-        const quantities = quantityField.split(',');  // Split quantities into array ["1", "1"]
-
-        if (sizes.length !== quantities.length) {
-            continue;
-        }
-
-        // Loop through each size and quantity
-        for (let j = 0; j < sizes.length; j++) {
-            const size = sizes[j];
-            const quantity = parseInt(quantities[j]);
-
-            if (!isNaN(quantity) && !isNaN(unitCost)) {
-                if (j == 0) {
-                    await updateInventoryAndCost(skuFull, quantity, size, unitCost, true);
-                } else {
-                    await updateInventoryAndCost(skuFull, quantity, size, unitCost, false);
-                }
-            }
-        }
+        await updateInventoryQuantity(sku, sizes, quantities);
+        
     }
 
     console.log('Inventory update complete.');
 }
 
-// Run the update process
-updateInventoryFromFetchedCSV();
+updateInventoryFromFetchedCSV()

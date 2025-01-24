@@ -51,7 +51,25 @@ jobs:
       
       - name: Preprocess data
         run: python /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/preprocess.py --input_folder "private_repo/clean_data/" --clean_file "new_clothes_cleaned.csv"
-          
+      
+      - name: Update products
+        run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/update_products.js
+        env:
+            SHOP: ${{ secrets.SHOP }}
+            SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+
+      - name: Set inventory 0
+        run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/set_zero_inventory.js
+        env:
+            SHOP: ${{ secrets.SHOP }}
+            SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+    
+      - name: Update costs
+        run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/update_costs.js
+        env:
+            SHOP: ${{ secrets.SHOP }}
+            SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+    
         
       # - name: Check existing SKUs
       #   run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/check_existing_skus.js
