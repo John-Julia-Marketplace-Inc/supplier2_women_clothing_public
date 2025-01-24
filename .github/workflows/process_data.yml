@@ -37,35 +37,47 @@ jobs:
       # Step 3: Run the data preprocessing script in the cloned private repo
       - name: Install Node.js dependencies 
         run: npm install axios csv-parser dotenv shopify-api-node fs
-        
-      - name: Check existing SKUs
-        run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/check_existing_skus.js
-        env:
-          SHOP: ${{ secrets.SHOP }}
-          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
       
-      # - name: Add new products
-      #   run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/add_products.js
+      - name: Iterate over the products
+        run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/iterate_and_find.js
+        env:
+            SHOP: ${{ secrets.SHOP }}
+            SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN_MEN_CLOTHING }}
+            ITERATE_AND_FIND: 'private_repo/clean_data/new_clothes_cleaned.csv'
+            FOLDER: 'private_repo/clean_data/'
+      
+      - name: Preprocess data
+        run: python /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/preprocess.py --input_folder "private_repo/clean_data/" --clean_file "new_clothes_cleaned.csv"
+          
+        
+      # - name: Check existing SKUs
+      #   run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/check_existing_skus.js
+      #   env:
+      #     SHOP: ${{ secrets.SHOP }}
+      #     SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+      
+      # # - name: Add new products
+      # #   run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/add_products.js
+      # #   env:
+      # #     SHOP: ${{ secrets.SHOP }}
+      # #     SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+
+      # - name: Update 0 inventory
+      #   run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/set_zero_inventory.js
+      #   env:
+      #     SHOP: ${{ secrets.SHOP }}
+      #     SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+      
+      # - name: Update all products
+      #   run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/update_products.js
       #   env:
       #     SHOP: ${{ secrets.SHOP }}
       #     SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
 
-      - name: Update 0 inventory
-        run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/set_zero_inventory.js
-        env:
-          SHOP: ${{ secrets.SHOP }}
-          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
-      
-      - name: Update all products
-        run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/update_products.js
-        env:
-          SHOP: ${{ secrets.SHOP }}
-          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
-
-      - name: List Files for Debugging
-        run: |
-            cd private_repo
-            ls -R
+      # - name: List Files for Debugging
+      #   run: |
+      #       cd private_repo
+      #       ls -R
 
       # Step 4: Push the cleaned data back to the private repo
       - name: Push Cleaned Data Back to Private Repository
