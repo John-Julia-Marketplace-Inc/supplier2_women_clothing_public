@@ -96,7 +96,7 @@ const updateUnitCost = async(sku, newCost) => {
         
         if (response) {
             let currCost = parseFloat(response.productVariants.edges[0].node.inventoryItem.unitCost.amount)
-            newCost = parseFloat(newCost)
+            newCost = parseFloat(newCost).toFixed()
 
             if (currCost != newCost) {
 
@@ -139,7 +139,7 @@ async function updateInventoryFromFetchedCSV() {
         const unitCost = product['Unit Cost_supplier'];
 
         if (sku && !isNaN(unitCost)) {
-            await updateUnitCost(sku, unitCost); // Awaiting the async function
+            await updateUnitCost(sku, parseFloat(unitCost).toFixed(2)); // Awaiting the async function
         }
     }
 }
