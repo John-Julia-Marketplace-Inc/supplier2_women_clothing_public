@@ -1,6 +1,6 @@
 const fs = require('fs');
 const csv = require('csv-parser');
-require('dotenv').config();
+// require('dotenv').config();
 const stream = require('stream');
 const { promisify } = require('util');
 const Shopify = require('shopify-api-node');
