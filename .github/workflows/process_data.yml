@@ -69,36 +69,13 @@ jobs:
         env:
             SHOP: ${{ secrets.SHOP }}
             SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
-    
-        
-      # - name: Check existing SKUs
-      #   run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/check_existing_skus.js
-      #   env:
-      #     SHOP: ${{ secrets.SHOP }}
-      #     SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
-      
-      # # - name: Add new products
-      # #   run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/add_products.js
-      # #   env:
-      # #     SHOP: ${{ secrets.SHOP }}
-      # #     SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
 
-      # - name: Update 0 inventory
-      #   run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/set_zero_inventory.js
-      #   env:
-      #     SHOP: ${{ secrets.SHOP }}
-      #     SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
-      
-      # - name: Update all products
-      #   run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/update_products.js
-      #   env:
-      #     SHOP: ${{ secrets.SHOP }}
-      #     SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
-
-      # - name: List Files for Debugging
-      #   run: |
-      #       cd private_repo
-      #       ls -R
+      - name: Add products
+        run: node node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/add_products_new.js
+        env:
+            SHOP: ${{ secrets.SHOP }}
+            SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+            LOCATION: ${{ secrets.LOCATION }}
 
       # Step 4: Push the cleaned data back to the private repo
       - name: Push Cleaned Data Back to Private Repository

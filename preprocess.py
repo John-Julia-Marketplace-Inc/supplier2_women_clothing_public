@@ -21,9 +21,12 @@ if __name__ == '__main__':
     to_add_skus = pd.read_csv(f'{input_folder}/to_add.csv')
     
     # get new products to add
-    new_products = all_data[all_data['SKU'].isin(to_add_skus['SKU'])]
+    new_products = all_data[all_data['SKU'].isin(to_add_skus['SKU'])].drop_duplicates()
     new_products[new_products['Size'] == 'OS'].to_csv(f'{input_folder}/os_add_products.csv', index=False)
     new_products[new_products['Size'] != 'OS'].to_csv(f'{input_folder}/others_add_products.csv', index=False)
+    
+    skus = pd.concat([all_skus, to_add_skus], ignore_index=True)
+    skus.drop_duplicates().to_csv(f'{input_folder}/all_skus.csv', index=False)
     
     # get zero inventory products
     zero_inventory = all_skus[~all_skus['SKU'].isin(all_data['SKU'])]
