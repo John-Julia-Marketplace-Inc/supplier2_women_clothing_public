@@ -51,6 +51,20 @@ jobs:
       
       - name: Preprocess data
         run: python /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/preprocess.py --input_folder "private_repo/clean_data/" --clean_file "new_clothes_cleaned.csv"
+
+      # Step 4: Push the cleaned data back to the private repo
+      - name: Push Cleaned Data Back to Private Repository
+        run: |
+          cd private_repo
+          git pull origin master --no-edit
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git add .
+          git commit -m "Processed data from public repo" || echo "No changes to commit"
+          git push
+        env:
+          PRIVATE_REPO_PAT: ${{ secrets.PUBLIC_PAT }}https://${{ secrets.PROFILE_URL }}:${{secrets.PUBLIC_PAT}}@github.com/${{ secrets.PROFILE_URL }}/supplier2_women_clothing_private.git
+    
       
       - name: Update products
         run: node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/update_products.js
@@ -70,26 +84,13 @@ jobs:
             SHOP: ${{ secrets.SHOP }}
             SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
 
-      - name: Add products
-        run: node node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/add_products_new.js
-        env:
-            SHOP: ${{ secrets.SHOP }}
-            SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
-            LOCATION: ${{ secrets.LOCATION }}
-            ADD_PRODUCTS: 'private_repo/clean_data/to_add.csv'
-
-      # Step 4: Push the cleaned data back to the private repo
-      - name: Push Cleaned Data Back to Private Repository
-        run: |
-          cd private_repo
-          git pull origin master --no-edit
-          git config user.name "GitHub Action"
-          git config user.email "action@github.com"
-          git add .
-          git commit -m "Processed data from public repo" || echo "No changes to commit"
-          git push
-        env:
-          PRIVATE_REPO_PAT: ${{ secrets.PUBLIC_PAT }}https://${{ secrets.PROFILE_URL }}:${{secrets.PUBLIC_PAT}}@github.com/${{ secrets.PROFILE_URL }}/supplier2_women_clothing_private.git
+      # - name: Add products
+      #   run: node node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/add_products_new.js
+      #   env:
+      #       SHOP: ${{ secrets.SHOP }}
+      #       SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+      #       LOCATION: ${{ secrets.LOCATION }}
+      #       ADD_PRODUCTS: 'private_repo/clean_data/to_add.csv'
 
   keepalive-job:
         name: Keepalive Workflow
