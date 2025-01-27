@@ -1,4 +1,4 @@
-name: Process Data from Private Repo
+name: Add products
 
 # Trigger this workflow manually or through a dispatch event
 on:
