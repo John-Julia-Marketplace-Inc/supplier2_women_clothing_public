@@ -84,14 +84,6 @@ jobs:
             SHOP: ${{ secrets.SHOP }}
             SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
 
-      - name: Add products
-        run: node node /home/runner/work/supplier2_women_clothing_public/supplier2_women_clothing_public/add_products_new.js
-        env:
-            SHOP: ${{ secrets.SHOP }}
-            SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
-            LOCATION: ${{ secrets.LOCATION }}
-            ADD_PRODUCTS: 'private_repo/clean_data/to_add.csv'
-
   keepalive-job:
         name: Keepalive Workflow
         runs-on: ubuntu-latest
